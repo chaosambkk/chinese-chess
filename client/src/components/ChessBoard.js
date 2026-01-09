@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './ChessBoard.css';
-import { INITIAL_BOARD, isValidMove, makeMove, getPieceColor, isInCheck } from '../utils/chessRules';
+import { isValidMove, getPieceColor } from '../utils/chessRules';
 
 const PIECE_NAMES = {
   // 红方（大写）

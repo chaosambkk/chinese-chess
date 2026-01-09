@@ -390,13 +390,12 @@ function canAttackKing(board, fromRow, fromCol, kingRow, kingCol, attackerColor)
 export function isCheckmate(board, playerColor) {
   // 如果找不到将/帅，说明被将死
   const kingSymbol = playerColor === 'red' ? 'K' : 'k';
-  let kingRow = -1, kingCol = -1;
+  let kingRow = -1;
 
   for (let row = 0; row < 10; row++) {
     for (let col = 0; col < 9; col++) {
       if (board[row][col] === kingSymbol) {
         kingRow = row;
-        kingCol = col;
         break;
       }
     }
