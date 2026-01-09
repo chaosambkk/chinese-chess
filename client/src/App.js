@@ -30,6 +30,7 @@ function App() {
   const [takenColors, setTakenColors] = useState([]);
   const [isInCheckState, setIsInCheckState] = useState({ red: false, black: false });
   const socketRef = useRef(null);
+  const playerColorRef = useRef(null);
 
   useEffect(() => {
     // 连接服务器
@@ -71,6 +72,7 @@ function App() {
 
     socketRef.current.on('game-started', ({ color, isYourTurn: turn }) => {
       setPlayerColor(color);
+      playerColorRef.current = color;
       setIsYourTurn(turn);
       setGameStatus('playing');
       setMessage(turn ? `轮到你下棋（${color === 'red' ? '红方' : '黑方'}）` : `等待对手下棋（${color === 'red' ? '红方' : '黑方'}）`);
@@ -84,12 +86,13 @@ function App() {
 
     socketRef.current.on('already-joined', ({ color }) => {
       setPlayerColor(color);
+      playerColorRef.current = color;
       setMessage(`你已经是${color === 'red' ? '红方' : '黑方'}，等待游戏开始...`);
     });
 
     socketRef.current.on('move-made', ({ move, playerColor: moveColor, nextTurn }) => {
       const { fromRow, fromCol, toRow, toCol } = move;
-      console.log('收到移动:', move, '移动玩家:', moveColor, '下一回合:', nextTurn, '我的颜色:', playerColor);
+      console.log('收到移动:', move, '移动玩家:', moveColor, '下一回合:', nextTurn, '我的颜色:', playerColorRef.current);
       
       setBoard(prevBoard => {
         console.log('更新棋盘前:', prevBoard[fromRow][fromCol], '->', prevBoard[toRow][toCol]);
