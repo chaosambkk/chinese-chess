@@ -67,6 +67,7 @@ function App() {
 
     socketRef.current.on('color-chosen', ({ color }) => {
       setPlayerColor(color);
+      playerColorRef.current = color;
       setMessage(`你选择了${color === 'red' ? '红方' : '黑方'}，等待对手选择...`);
     });
 
@@ -107,7 +108,7 @@ function App() {
         // 更新双方的将军状态（立即更新，确保组件能获取到最新状态）
         const redInCheck = isInCheck(newBoard, 'red');
         const blackInCheck = isInCheck(newBoard, 'black');
-        console.log('更新将军状态:', { red: redInCheck, black: blackInCheck, playerColor, moveColor });
+        console.log('更新将军状态:', { red: redInCheck, black: blackInCheck, playerColor: playerColorRef.current, moveColor });
         
         // 使用函数式更新确保状态正确
         setIsInCheckState(prev => {
