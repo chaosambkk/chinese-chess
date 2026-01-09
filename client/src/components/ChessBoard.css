@@ -1,0 +1,244 @@
+.chess-board-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.chess-board {
+  position: relative;
+  width: 540px;
+  height: 600px;
+  background: #f0d9b5;
+  border: 4px solid #8b4513;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  /* 使用绝对定位来放置交叉点 */
+  transition: transform 0.5s ease;
+}
+
+.chess-board.rotated {
+  transform: rotate(180deg);
+}
+
+.chess-board.rotated svg {
+  transform: rotate(180deg);
+}
+
+.chess-board.rotated .river-text {
+  transform: rotate(180deg);
+}
+
+/* 棋子不随棋盘旋转，保持正向显示 - 通过内联样式处理，这里不需要 */
+
+.cell {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  /* 将交叉点定位到网格线的交叉位置 */
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.cell:hover {
+  background-color: transparent;
+}
+
+.cell.selected {
+  background-color: transparent;
+  position: relative;
+}
+
+/* 四个角的装饰 */
+.selection-corners {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.corner {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #ffff00;
+}
+
+.corner-tl {
+  top: 2px;
+  left: 2px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.corner-tr {
+  top: 2px;
+  right: 2px;
+  border-left: none;
+  border-bottom: none;
+}
+
+.corner-bl {
+  bottom: 2px;
+  left: 2px;
+  border-right: none;
+  border-top: none;
+}
+
+.corner-br {
+  bottom: 2px;
+  right: 2px;
+  border-left: none;
+  border-top: none;
+}
+
+.cell.in-check {
+  animation: checkPulse 1s infinite;
+}
+
+@keyframes checkPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 20px 5px rgba(255, 0, 0, 0.9);
+  }
+}
+
+/* 被将军的将/帅特殊样式 */
+.piece-in-check {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%) !important;
+  border: 3px solid #ff0000 !important;
+  box-shadow: 0 0 15px rgba(255, 0, 0, 0.8), 0 0 30px rgba(255, 0, 0, 0.5) !important;
+  animation: pieceCheckPulse 1s ease-in-out infinite;
+}
+
+@keyframes pieceCheckPulse {
+  0%, 100% {
+    transform: translateY(2px) scale(1);
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.8), 0 0 30px rgba(255, 0, 0, 0.5);
+  }
+  50% {
+    transform: translateY(2px) scale(1.05);
+    box-shadow: 0 0 25px rgba(255, 0, 0, 1), 0 0 40px rgba(255, 0, 0, 0.7);
+  }
+}
+
+.cell.valid-target {
+  background-color: rgba(0, 255, 0, 0.3);
+}
+
+.cell.valid-target::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: rgba(0, 255, 0, 0.6);
+  border: 2px solid rgba(0, 200, 0, 0.8);
+}
+
+.cell.hovered {
+  background-color: transparent;
+}
+
+.piece {
+  font-size: 32px;
+  font-weight: bold;
+  font-family: 'KaiTi', '楷体', 'STKaiti', 'SimKai', serif;
+  user-select: none;
+  z-index: 10;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #f0d9b5;
+  border: 2px solid #8b4513;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+  text-align: center;
+  position: relative;
+}
+
+.piece.red {
+  color: #d32f2f;
+}
+
+.piece.black {
+  color: #212121;
+}
+
+.river-text {
+  position: absolute;
+  font-size: 42px;
+  font-weight: bold;
+  color: #8b4513;
+  z-index: 1;
+  pointer-events: none;
+  font-family: 'KaiTi', '楷体', 'STKaiti', serif;
+  white-space: nowrap;
+}
+
+.river-left {
+  left: 80px;
+  top: 50%;
+  transform: translateY(-50%);
+  /* 水平显示，不再使用垂直模式 */
+}
+
+.river-right {
+  right: 80px;
+  top: 50%;
+  transform: translateY(-50%);
+  /* 水平显示，不再使用垂直模式 */
+}
+
+.river-center {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  opacity: 0.4;
+  white-space: nowrap;
+}
+
+.board-lines {
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  width: 480px;
+  height: 540px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@media (max-width: 600px) {
+  .chess-board {
+    width: 90vw;
+    height: 100vw;
+    max-width: 540px;
+    max-height: 600px;
+  }
+  
+  .piece {
+    font-size: 24px;
+  }
+  
+  .river-text {
+    font-size: 32px;
+  }
+}
+

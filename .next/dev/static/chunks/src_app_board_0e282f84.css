@@ -1,0 +1,143 @@
+/* [project]/src/app/board.css [app-client] (css) */
+.board-container {
+  --grid-size: 50px;
+  padding: calc(var(--grid-size) / 2);
+  background-color: #e6ceac;
+  border: 4px solid #5d4037;
+  border-radius: 4px;
+  position: relative;
+  box-shadow: 0 20px 50px #00000080;
+}
+
+.board-lines {
+  width: calc(var(--grid-size) * 8);
+  height: calc(var(--grid-size) * 9);
+  border: 1px solid #333;
+  position: relative;
+}
+
+.line-v {
+  background-color: #333;
+  width: 1px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.line-h {
+  background-color: #333;
+  height: 1px;
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.river-bank {
+  top: calc(var(--grid-size) * 4);
+  height: var(--grid-size);
+  color: #5d4037;
+  z-index: 1;
+  background-color: #e6ceac;
+  justify-content: center;
+  align-items: center;
+  font-family: serif;
+  font-size: 1.5rem;
+  font-weight: bold;
+  display: flex;
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.palace-x {
+  width: calc(var(--grid-size) * 2);
+  height: calc(var(--grid-size) * 2);
+  pointer-events: none;
+  position: absolute;
+}
+
+.palace-x:before, .palace-x:after {
+  content: "";
+  background-color: #333;
+  width: 100%;
+  height: 1px;
+  position: absolute;
+  top: 50%;
+  left: 0;
+}
+
+.palace-x:before {
+  transform: rotate(45deg);
+}
+
+.palace-x:after {
+  transform: rotate(-45deg);
+}
+
+.pieces-layer {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.piece-slot {
+  width: var(--grid-size);
+  height: var(--grid-size);
+  cursor: pointer;
+  z-index: 10;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.piece-inner {
+  background-color: #f9f4e8;
+  border: 2px solid #333;
+  border-radius: 50%;
+  justify-content: center;
+  align-items: center;
+  width: 85%;
+  height: 85%;
+  font-size: 1.5rem;
+  font-weight: bold;
+  transition: all .2s;
+  display: flex;
+  box-shadow: 0 4px 8px #0000004d, inset 0 0 10px #0000001a;
+}
+
+.piece-inner.red {
+  color: #c00;
+  border-color: #c00;
+}
+
+.piece-inner.black {
+  color: #1a1a1a;
+  border-color: #1a1a1a;
+}
+
+.piece-slot.selected .piece-inner {
+  z-index: 20;
+  border-color: gold;
+  transform: scale(1.15);
+  box-shadow: 0 0 15px gold, 0 8px 16px #0006;
+}
+
+.move-hint {
+  background-color: #0003;
+  border-radius: 50%;
+  width: 12px;
+  height: 12px;
+}
+
+.capture-hint {
+  border: 2px dashed #f006;
+  border-radius: 50%;
+  width: 80%;
+  height: 80%;
+}
+
+/*# sourceMappingURL=src_app_board_0e282f84.css.map*/

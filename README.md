@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 中国象棋在线对战
 
-## Getting Started
+一个简单的中国象棋在线对战游戏，支持两人远程对弈。
 
-First, run the development server:
+## 功能特点
+
+- 🎮 完整的中国象棋规则实现
+- 🌐 实时在线对战（WebSocket）
+- 🎨 简洁美观的界面
+- 📱 响应式设计
+
+## 安装和运行
+
+### 1. 安装依赖
+
+```bash
+npm run install-all
+```
+
+### 2. 启动开发服务器
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+这将同时启动：
+- 后端服务器：http://localhost:3001
+- 前端应用：http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. 使用说明
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+#### 单人测试（自己和自己下棋）
 
-## Learn More
+有几种方法可以一个人测试：
 
-To learn more about Next.js, take a look at the following resources:
+**方法一：两个浏览器窗口（推荐）**
+1. 启动服务器后，打开第一个浏览器窗口，访问 http://localhost:3000
+   - 你会成为**红方**（先手）
+   - 等待对手加入...
+2. 打开第二个浏览器窗口（或新标签页），也访问 http://localhost:3000
+   - 你会成为**黑方**（后手）
+   - 游戏开始！
+3. 现在你可以在两个窗口之间切换，自己和自己下棋
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+**方法二：使用隐身模式**
+1. 正常窗口打开 http://localhost:3000（红方）
+2. 使用浏览器的隐身/无痕模式打开 http://localhost:3000（黑方）
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**方法三：使用不同浏览器**
+1. 在 Chrome 中打开 http://localhost:3000（红方）
+2. 在 Firefox/Safari/Edge 中打开 http://localhost:3000（黑方）
 
-## Deploy on Vercel
+#### 双人对战（联网）
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. 将服务器部署到公网（如云服务器）
+2. 双方访问部署后的地址
+3. 第一个连接的选择红方（先手），第二个选择黑方（后手）
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**详细部署指南请查看 [DEPLOY.md](./DEPLOY.md)**
+
+## 项目结构
+
+```
+chess/
+├── server/          # 后端服务器
+│   └── index.js    # Express + Socket.io 服务器
+├── client/          # React 前端应用
+│   ├── src/
+│   │   ├── App.js
+│   │   ├── components/
+│   │   └── utils/
+│   └── public/
+└── package.json
+```
+
+## 技术栈
+
+- 前端：React
+- 后端：Node.js + Express + Socket.io
+- 通信：WebSocket
+
