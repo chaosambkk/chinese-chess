@@ -177,7 +177,7 @@ function App() {
     socketRef.current.on('game-reset', () => {
       setBoard(INITIAL_BOARD);
       setSelectedCell(null);
-      setIsYourTurn(playerColor === 'red');
+      setIsYourTurn(playerColorRef.current === 'red');
       setGameStatus('playing');
       setMessage('游戏已重置');
       // 重置将军状态
