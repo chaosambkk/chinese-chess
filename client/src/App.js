@@ -34,25 +34,44 @@ function App() {
   const socketRef = useRef(null);
   const playerColorRef = useRef(null);
 
+  // 重置所有游戏状态的函数
+  const resetGameState = () => {
+    setBoard(INITIAL_BOARD);
+    setPlayerColor(null);
+    playerColorRef.current = null;
+    setIsYourTurn(false);
+    setSelectedCell(null);
+    setMessage('');
+    setIsInCheckState({ red: false, black: false });
+    setLastMove(null);
+    setAvailableColors(['red', 'black']);
+    setTakenColors([]);
+  };
+
   useEffect(() => {
     // 初始化语音合成
     initSpeechSynthesis();
+    
+    // 连接服务器前，先重置所有状态
+    resetGameState();
     
     // 连接服务器
     socketRef.current = io(SERVER_URL);
 
     socketRef.current.on('connect', () => {
       console.log('已连接到服务器');
+      // 重置所有状态，确保重新进入时不会有旧数据
+      resetGameState();
       setGameStatus('choosing-color');
-      setMessage('');
       socketRef.current.emit('join-game');
     });
 
     socketRef.current.on('choose-color', ({ availableColors: avail, takenColors: taken, players }) => {
+      // 重置所有游戏状态，确保重新选择颜色时不会有旧数据
+      resetGameState();
       setGameStatus('choosing-color');
       setAvailableColors(avail);
       setTakenColors(taken);
-      setMessage('');
     });
 
     socketRef.current.on('colors-updated', ({ takenColors: taken, availableColors: avail }) => {
@@ -73,13 +92,13 @@ function App() {
     });
 
     socketRef.current.on('game-started', ({ color, isYourTurn: turn }) => {
+      // 重置所有状态，确保游戏开始时是干净的状态
+      resetGameState();
       setPlayerColor(color);
       playerColorRef.current = color;
       setIsYourTurn(turn);
       setGameStatus('playing');
       setMessage(turn ? `轮到你下棋（${color === 'red' ? '红方' : '黑方'}）` : `等待对手下棋（${color === 'red' ? '红方' : '黑方'}）`);
-      // 重置将军状态
-      setIsInCheckState({ red: false, black: false });
     });
 
     socketRef.current.on('opponent-choosing', () => {
@@ -87,6 +106,8 @@ function App() {
     });
 
     socketRef.current.on('already-joined', ({ color }) => {
+      // 重置所有状态，确保重新加入时不会有旧数据
+      resetGameState();
       setPlayerColor(color);
       playerColorRef.current = color;
       setMessage(`你已经是${color === 'red' ? '红方' : '黑方'}，等待游戏开始...`);
@@ -262,14 +283,11 @@ function App() {
     });
 
     socketRef.current.on('game-reset', () => {
-      setBoard(INITIAL_BOARD);
-      setSelectedCell(null);
-      setLastMove(null); // 重置最后移动位置
+      // 重置所有状态
+      resetGameState();
       setIsYourTurn(playerColorRef.current === 'red');
       setGameStatus('playing');
       setMessage('游戏已重置');
-      // 重置将军状态
-      setIsInCheckState({ red: false, black: false });
     });
 
     socketRef.current.on('opponent-disconnected', () => {
