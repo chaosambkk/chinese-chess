@@ -349,12 +349,16 @@
   top: 50%;
   transform: translateY(-50%);
   /* 水平显示，位置和字体大小由JavaScript动态设置 */
+  /* 确保left值能正确应用 */
+  left: auto;
 }
 
 .river-right {
   top: 50%;
   transform: translateY(-50%);
   /* 水平显示，位置和字体大小由JavaScript动态设置 */
+  /* 确保right值能正确应用 */
+  right: auto;
 }
 
 .river-center {

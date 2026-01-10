@@ -28,18 +28,23 @@ function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCe
   // 响应式计算棋盘尺寸
   useEffect(() => {
     const updateSize = () => {
-      const container = document.querySelector('.chess-board-container');
-      if (container) {
-        const containerWidth = container.clientWidth - 20; // 减去 padding
-        const maxWidth = Math.min(540, containerWidth);
-        const maxHeight = (maxWidth / 9) * 10; // 保持 9:10 比例
-        setBoardSize({ width: maxWidth, height: maxHeight });
+      const boardElement = document.querySelector('.chess-board');
+      if (boardElement) {
+        // 读取棋盘元素的实际宽度（CSS可能已经设置了宽度）
+        const actualWidth = boardElement.clientWidth || boardElement.offsetWidth;
+        const actualHeight = boardElement.clientHeight || boardElement.offsetHeight;
+        setBoardSize({ width: actualWidth, height: actualHeight });
       }
     };
 
+    // 延迟执行，确保CSS已应用
+    const timer = setTimeout(updateSize, 0);
     updateSize();
     window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateSize);
+    };
   }, []);
 
   // 根据实际棋盘尺寸计算 cellSize
@@ -52,23 +57,16 @@ function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCe
   const boardWidth = 8 * cellSize; // 9条竖线，8个间隔
   const boardHeight = 9 * cellSize; // 10条横线，9个间隔
   
-  // 计算楚河汉界位置：基于实际棋盘绘制区域
-  // 河界在第4-5行之间，文字应该在棋盘两侧，距离棋盘绘制区域边缘一定距离
-  // 使用固定偏移量，但根据cellSize缩放
-  const riverTextOffset = Math.max(20, Math.min(60, cellSize * 0.6)); // 20-60px之间，或cellSize的60%
-  let riverLeftPos = startX + riverTextOffset;
-  let riverRightPos = startX + boardWidth - riverTextOffset;
-  
-  // 边界检查：确保文字不会超出棋盘范围
-  riverLeftPos = Math.max(10, Math.min(riverLeftPos, boardSize.width / 2 - 20));
-  riverRightPos = Math.max(boardSize.width / 2 + 20, Math.min(riverRightPos, boardSize.width - 10));
-  
-  // 根据棋盘大小调整字体大小
-  const fontSize = Math.max(20, Math.min(42, cellSize * 0.65));
+  // 计算楚河汉界位置和字体大小
+  // 使用百分比定位，基于棋盘实际宽度
+  const riverLeftPercent = 10; // 距离左边缘10%
+  const riverRightPercent = 10; // 距离右边缘10%
+  // 根据棋盘宽度调整字体大小，pad设备上需要更大的字体
+  const fontSize = Math.max(28, Math.min(42, boardSize.width * 0.08));
   
   const riverTextStyle = {
-    left: { left: `${riverLeftPos}px`, fontSize: `${fontSize}px` },
-    right: { right: `${boardSize.width - riverRightPos}px`, fontSize: `${fontSize}px` }
+    left: { left: `${riverLeftPercent}%`, fontSize: `${fontSize}px` },
+    right: { right: `${riverRightPercent}%`, fontSize: `${fontSize}px` }
   };
   
   // 如果玩家选择黑色，需要将红黑棋子对调显示
