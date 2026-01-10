@@ -57,18 +57,6 @@ function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCe
   const boardWidth = 8 * cellSize; // 9条竖线，8个间隔
   const boardHeight = 9 * cellSize; // 10条横线，9个间隔
   
-  // 计算楚河汉界位置和字体大小
-  // 使用百分比定位，基于棋盘实际宽度
-  const riverLeftPercent = 10; // 距离左边缘10%
-  const riverRightPercent = 10; // 距离右边缘10%
-  // 根据棋盘宽度调整字体大小，pad设备上需要更大的字体
-  const fontSize = Math.max(28, Math.min(42, boardSize.width * 0.08));
-  
-  const riverTextStyle = {
-    left: { left: `${riverLeftPercent}%`, fontSize: `${fontSize}px` },
-    right: { right: `${riverRightPercent}%`, fontSize: `${fontSize}px` }
-  };
-  
   // 如果玩家选择黑色，需要将红黑棋子对调显示
   const isBlackPlayer = playerColor === 'black';
   
@@ -249,8 +237,8 @@ function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCe
         </svg>
 
         {/* 绘制楚河汉界文字 */}
-        <div className="river-text river-left" style={riverTextStyle.left}>楚河</div>
-        <div className="river-text river-right" style={riverTextStyle.right}>汉界</div>
+        <div className="river-text river-left">楚河</div>
+        <div className="river-text river-right">汉界</div>
 
         {renderBoard()}
       </div>

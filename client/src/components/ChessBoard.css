@@ -330,7 +330,6 @@
 
 .river-text {
   position: absolute;
-  font-size: 42px;
   font-weight: bold;
   color: #8b4513;
   z-index: 5; /* 提高z-index，确保在棋盘线和单元格之上 */
@@ -343,22 +342,18 @@
   text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
   /* 防止文字被裁剪 */
   overflow: visible;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .river-left {
-  top: 50%;
-  transform: translateY(-50%);
-  /* 水平显示，位置和字体大小由JavaScript动态设置 */
-  /* 确保left值能正确应用 */
-  left: auto;
+  left: 15%;
+  font-size: 42px;
 }
 
 .river-right {
-  top: 50%;
-  transform: translateY(-50%);
-  /* 水平显示，位置和字体大小由JavaScript动态设置 */
-  /* 确保right值能正确应用 */
-  right: auto;
+  right: 15%;
+  font-size: 42px;
 }
 
 .river-center {
@@ -407,15 +402,15 @@
   }
   
   .river-text {
-    /* 字体大小由JavaScript动态设置 */
+    font-size: 36px;
   }
   
   .river-left {
-    /* 位置由JavaScript动态设置 */
+    left: 12%;
   }
   
   .river-right {
-    /* 位置由JavaScript动态设置 */
+    right: 12%;
   }
 }
 
@@ -452,15 +447,15 @@
   }
   
   .river-text {
-    /* 字体大小由JavaScript动态设置 */
+    font-size: 24px;
   }
   
   .river-left {
-    /* 位置由JavaScript动态设置 */
+    left: 10%;
   }
   
   .river-right {
-    /* 位置由JavaScript动态设置 */
+    right: 10%;
   }
 }
 
@@ -477,15 +472,15 @@
   }
   
   .river-text {
-    /* 字体大小由JavaScript动态设置 */
+    font-size: 24px;
   }
   
   .river-left {
-    /* 位置由JavaScript动态设置 */
+    left: 10%;
   }
   
   .river-right {
-    /* 位置由JavaScript动态设置 */
+    right: 10%;
   }
 }
 
