@@ -337,20 +337,24 @@
   pointer-events: none;
   font-family: 'KaiTi', '楷体', 'STKaiti', serif;
   white-space: nowrap;
+  text-align: center;
+  line-height: 1;
 }
 
 .river-left {
-  left: 80px;
+  left: 15%;
   top: 50%;
   transform: translateY(-50%);
   /* 水平显示，不再使用垂直模式 */
+  /* 内联样式会覆盖此处的left和fontSize */
 }
 
 .river-right {
-  right: 80px;
+  right: 15%;
   top: 50%;
   transform: translateY(-50%);
   /* 水平显示，不再使用垂直模式 */
+  /* 内联样式会覆盖此处的right和fontSize */
 }
 
 .river-center {
@@ -366,6 +370,49 @@
   position: absolute;
   pointer-events: none;
   z-index: 0;
+}
+
+/* Pad设备响应式设计 */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .chess-board-container {
+    padding: 10px;
+  }
+  
+  .chess-board {
+    width: calc(100vw - 40px);
+    max-width: 540px;
+    height: calc((100vw - 40px) * 10 / 9);
+    max-height: calc(100vh - 200px);
+    min-width: 400px;
+    min-height: 445px;
+  }
+  
+  .cell {
+    width: calc((100vw - 40px) / 9);
+    height: calc((100vw - 40px) / 9);
+    max-width: 60px;
+    max-height: 60px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  .piece {
+    font-size: 28px;
+    width: 45px;
+    height: 45px;
+  }
+  
+  .river-text {
+    /* 字体大小由JavaScript动态设置 */
+  }
+  
+  .river-left {
+    /* 位置由JavaScript动态设置 */
+  }
+  
+  .river-right {
+    /* 位置由JavaScript动态设置 */
+  }
 }
 
 /* 移动端响应式设计 */
@@ -401,15 +448,15 @@
   }
   
   .river-text {
-    font-size: 24px;
+    /* 字体大小由JavaScript动态设置 */
   }
   
   .river-left {
-    left: 60px;
+    /* 位置由JavaScript动态设置 */
   }
   
   .river-right {
-    right: 60px;
+    /* 位置由JavaScript动态设置 */
   }
 }
 
@@ -426,15 +473,15 @@
   }
   
   .river-text {
-    font-size: 20px;
+    /* 字体大小由JavaScript动态设置 */
   }
   
   .river-left {
-    left: 40px;
+    /* 位置由JavaScript动态设置 */
   }
   
   .river-right {
-    right: 40px;
+    /* 位置由JavaScript动态设置 */
   }
 }
 

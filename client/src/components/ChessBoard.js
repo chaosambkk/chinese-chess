@@ -24,8 +24,9 @@ const PIECE_NAMES = {
 function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCellClick, isInCheck, isInCheckState, lastMove }) {
   const [hoveredCell, setHoveredCell] = useState(null);
   const [boardSize, setBoardSize] = useState({ width: 540, height: 600 });
+  const [riverTextStyle, setRiverTextStyle] = useState({ left: {}, right: {} });
 
-  // 响应式计算棋盘尺寸
+  // 响应式计算棋盘尺寸和楚河汉界位置
   useEffect(() => {
     const updateSize = () => {
       const container = document.querySelector('.chess-board-container');
@@ -34,6 +35,17 @@ function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCe
         const maxWidth = Math.min(540, containerWidth);
         const maxHeight = (maxWidth / 9) * 10; // 保持 9:10 比例
         setBoardSize({ width: maxWidth, height: maxHeight });
+        
+        // 计算楚河汉界位置：应该在棋盘两侧，距离边缘约15%
+        const riverLeft = maxWidth * 0.15;
+        const riverRight = maxWidth * 0.15;
+        // 根据棋盘大小调整字体大小
+        const fontSize = Math.max(20, Math.min(42, maxWidth * 0.078));
+        
+        setRiverTextStyle({
+          left: { left: `${riverLeft}px`, fontSize: `${fontSize}px` },
+          right: { right: `${riverRight}px`, fontSize: `${fontSize}px` }
+        });
       }
     };
 
@@ -232,8 +244,8 @@ function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCe
         </svg>
 
         {/* 绘制楚河汉界文字 */}
-        <div className="river-text river-left">楚河</div>
-        <div className="river-text river-right">汉界</div>
+        <div className="river-text river-left" style={riverTextStyle.left}>楚河</div>
+        <div className="river-text river-right" style={riverTextStyle.right}>汉界</div>
 
         {renderBoard()}
       </div>
