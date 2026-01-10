@@ -166,6 +166,7 @@ function App() {
             }, 200);
           } else if (isOpponentInCheck) {
             // 对手被将军但未将死
+            // 对所有玩家播放"将军"音效（只播放一次，避免重复）
             setTimeout(() => {
               setMessage(`⚠️ 将军！${opponentColor === 'red' ? '红方' : '黑方'}被将军！`);
               playCheckSound(); // 播放"将军"语音
@@ -241,8 +242,8 @@ function App() {
                   }
                 } else if (myCheckStatus) {
                   // 被将军但未将死
+                  // 不在这里播放音效，因为已经在 move-made 事件中播放过了
                   setMessage(`⚠️ 你被将军了！请尽快应对！`);
-                  playCheckSound(); // 播放"将军"语音
                 } else if (isMyTurn) {
                   setMessage(`轮到你下棋（${currentColor === 'red' ? '红方' : '黑方'}）`);
                   playNotificationSound(); // 播放提示音
