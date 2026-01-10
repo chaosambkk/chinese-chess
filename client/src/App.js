@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import ChessBoard from './components/ChessBoard';
 import { INITIAL_BOARD, isValidMove, makeMove, isCheckmate, isInCheck } from './utils/chessRules';
+import { playCheckSound, playNotificationSound, playMoveSound, initSpeechSynthesis } from './utils/sound';
 import './App.css';
 
 // 自动检测服务器地址：生产环境使用当前域名，开发环境使用 localhost
@@ -33,6 +34,9 @@ function App() {
   const playerColorRef = useRef(null);
 
   useEffect(() => {
+    // 初始化语音合成
+    initSpeechSynthesis();
+    
     // 连接服务器
     socketRef.current = io(SERVER_URL);
 
@@ -124,6 +128,7 @@ function App() {
         if (isOpponentInCheck) {
           setTimeout(() => {
             setMessage(`⚠️ 将军！${opponentColor === 'red' ? '红方' : '黑方'}被将军！`);
+            playCheckSound(); // 播放"将军"语音
           }, 150);
         } else if (!isMoverInCheck && prevBoard) {
           // 如果移动方不再被将军，显示解除提示
@@ -160,8 +165,10 @@ function App() {
               // 如果被将军，显示将军提示；否则显示正常提示
               if (myCheckStatus) {
                 setMessage(`⚠️ 你被将军了！请尽快应对！`);
+                playCheckSound(); // 播放"将军"语音
               } else if (isMyTurn) {
                 setMessage(`轮到你下棋（${currentColor === 'red' ? '红方' : '黑方'}）`);
+                playNotificationSound(); // 播放提示音
               } else {
                 setMessage(`等待对手下棋...`);
               }
@@ -218,6 +225,7 @@ function App() {
     // 如果点击了己方棋子，选中它
     if (pieceColor === playerColor) {
       setSelectedCell({ row, col });
+      playNotificationSound(); // 播放选择提示音
       return;
     }
 
@@ -234,6 +242,7 @@ function App() {
           toRow: row,
           toCol: col,
         });
+        playMoveSound(); // 播放移动提示音
         setSelectedCell(null);
       } else {
         // 如果移动不合法，显示错误提示
