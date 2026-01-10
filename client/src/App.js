@@ -109,17 +109,6 @@ function App() {
         const newBoard = makeMove(prevBoard, fromRow, fromCol, toRow, toCol);
         console.log('更新棋盘后:', newBoard[fromRow][fromCol], '->', newBoard[toRow][toCol]);
         
-        // 如果是吃子，播放"吃"的提示音；否则播放移动音
-        if (isCapture) {
-          setTimeout(() => {
-            playCaptureSound();
-          }, 50);
-        } else {
-          setTimeout(() => {
-            playMoveSound();
-          }, 50);
-        }
-        
         // 检查双方的将军状态
         const opponentColor = moveColor === 'red' ? 'black' : 'red';
         const isMoverInCheck = isInCheck(newBoard, moveColor);
@@ -144,34 +133,59 @@ function App() {
         const isOpponentCheckmate = isCheckmate(newBoard, opponentColor);
         const isMoverCheckmate = isCheckmate(newBoard, moveColor);
         
-        if (isOpponentCheckmate) {
-          // 对手被将死，移动方获胜
-          setTimeout(() => {
-            setGameStatus('game-over');
-            setIsYourTurn(false); // 游戏结束，不能再下棋
-            const winnerColor = moveColor === 'red' ? '红方' : '黑方';
-            const loserColor = opponentColor === 'red' ? '红方' : '黑方';
-            setMessage(`🎉 游戏结束！${winnerColor}获胜！${loserColor}被将死！`);
-            playCheckSound(); // 播放"将军"语音
-          }, 200);
-        } else if (isMoverCheckmate) {
-          // 移动方被将死，对手获胜（这种情况理论上不应该发生，因为isValidMove会阻止）
-          setTimeout(() => {
-            setGameStatus('game-over');
-            setIsYourTurn(false);
-            const winnerColor = opponentColor === 'red' ? '红方' : '黑方';
-            const loserColor = moveColor === 'red' ? '红方' : '黑方';
-            setMessage(`🎉 游戏结束！${winnerColor}获胜！${loserColor}被将死！`);
-            playCheckSound();
-          }, 200);
-        } else if (isOpponentInCheck) {
-          // 对手被将军但未将死
-          setTimeout(() => {
-            setMessage(`⚠️ 将军！${opponentColor === 'red' ? '红方' : '黑方'}被将军！`);
-            playCheckSound(); // 播放"将军"语音
-          }, 150);
-        } else if (!isMoverInCheck && prevBoard) {
-          // 如果移动方不再被将军，显示解除提示
+        // 音效播放逻辑：优先播放将军音，如果没将军再根据是否是吃子播放相应音效
+        if (isOpponentCheckmate || isMoverCheckmate || isOpponentInCheck) {
+          // 如果将军或将死，只播放"将军"，不播放"吃"或移动音
+          if (isOpponentCheckmate) {
+            // 对手被将死，移动方获胜
+            setTimeout(() => {
+              setGameStatus('game-over');
+              setIsYourTurn(false); // 游戏结束，不能再下棋
+              const winnerColor = moveColor === 'red' ? '红方' : '黑方';
+              const loserColor = opponentColor === 'red' ? '红方' : '黑方';
+              setMessage(`🎉 游戏结束！${winnerColor}获胜！${loserColor}被将死！`);
+              playCheckSound(); // 播放"将军"语音
+              // 通知服务器游戏已结束
+              if (socketRef.current) {
+                socketRef.current.emit('game-ended');
+              }
+            }, 200);
+          } else if (isMoverCheckmate) {
+            // 移动方被将死，对手获胜（这种情况理论上不应该发生，因为isValidMove会阻止）
+            setTimeout(() => {
+              setGameStatus('game-over');
+              setIsYourTurn(false);
+              const winnerColor = opponentColor === 'red' ? '红方' : '黑方';
+              const loserColor = moveColor === 'red' ? '红方' : '黑方';
+              setMessage(`🎉 游戏结束！${winnerColor}获胜！${loserColor}被将死！`);
+              playCheckSound();
+              // 通知服务器游戏已结束
+              if (socketRef.current) {
+                socketRef.current.emit('game-ended');
+              }
+            }, 200);
+          } else if (isOpponentInCheck) {
+            // 对手被将军但未将死
+            setTimeout(() => {
+              setMessage(`⚠️ 将军！${opponentColor === 'red' ? '红方' : '黑方'}被将军！`);
+              playCheckSound(); // 播放"将军"语音
+            }, 150);
+          }
+        } else {
+          // 如果没有将军，根据是否是吃子播放相应的音效
+          if (isCapture) {
+            setTimeout(() => {
+              playCaptureSound();
+            }, 50);
+          } else {
+            setTimeout(() => {
+              playMoveSound();
+            }, 50);
+          }
+        }
+        
+        // 如果移动方不再被将军，显示解除提示
+        if (!isMoverInCheck && prevBoard) {
           const wasMoverInCheck = isInCheck(prevBoard, moveColor);
           if (wasMoverInCheck) {
             setTimeout(() => {
@@ -209,6 +223,10 @@ function App() {
                   const loserColor = currentColor === 'red' ? '红方' : '黑方';
                   setMessage(`🎉 游戏结束！${winnerColor}获胜！${loserColor}被将死！`);
                   playCheckSound();
+                  // 通知服务器游戏已结束
+                  if (socketRef.current) {
+                    socketRef.current.emit('game-ended');
+                  }
                 } else if (isOpponentCheckmate) {
                   // 对手被将死，自己获胜
                   setGameStatus('game-over');
@@ -217,6 +235,10 @@ function App() {
                   const loserColor = opponentColor === 'red' ? '红方' : '黑方';
                   setMessage(`🎉 游戏结束！${winnerColor}获胜！${loserColor}被将死！`);
                   playCheckSound();
+                  // 通知服务器游戏已结束
+                  if (socketRef.current) {
+                    socketRef.current.emit('game-ended');
+                  }
                 } else if (myCheckStatus) {
                   // 被将军但未将死
                   setMessage(`⚠️ 你被将军了！请尽快应对！`);
@@ -250,8 +272,21 @@ function App() {
     });
 
     socketRef.current.on('opponent-disconnected', () => {
+      // 如果游戏已结束，显示不同的消息
+      setGameStatus(prevStatus => {
+        if (prevStatus === 'game-over') {
+          setMessage('对手已退出，请等待对手完全退出后才能开始新游戏...');
+          return 'game-over';
+        } else {
+          setMessage('对手已断开连接，等待重新连接...');
+          return 'waiting';
+        }
+      });
+    });
+
+    socketRef.current.on('game-ended-waiting', ({ message }) => {
       setGameStatus('waiting');
-      setMessage('对手已断开连接，等待重新连接...');
+      setMessage(message || '游戏已结束，请等待所有玩家退出后才能开始新游戏');
     });
 
     socketRef.current.on('game-full', () => {
@@ -305,16 +340,8 @@ function App() {
           toCol: col,
         });
         
-        // 根据是否是吃子播放不同的音效
-        if (isCapture) {
-          setTimeout(() => {
-            playCaptureSound();
-          }, 50);
-        } else {
-          setTimeout(() => {
-            playMoveSound();
-          }, 50);
-        }
+        // 音效统一在 move-made 事件中播放，避免重复播放
+        // 移除这里的音效播放逻辑
         
         setSelectedCell(null);
       } else {

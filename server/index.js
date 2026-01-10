@@ -21,7 +21,8 @@ let gameState = {
   players: [],
   currentTurn: 'red', // 'red' 或 'black'
   board: null,
-  gameId: null
+  gameId: null,
+  gameEnded: false // 游戏是否已结束
 };
 
 // 允许玩家选择颜色
@@ -30,6 +31,14 @@ io.on('connection', (socket) => {
 
   // 加入游戏（等待选择颜色）
   socket.on('join-game', () => {
+    // 如果游戏已结束但还有玩家在，新玩家必须等待
+    if (gameState.gameEnded && gameState.players.length > 0) {
+      socket.emit('game-ended-waiting', { 
+        message: '游戏已结束，请等待所有玩家退出后才能开始新游戏' 
+      });
+      return;
+    }
+    
     if (gameState.players.length >= 2) {
       socket.emit('game-full');
       return;
@@ -163,11 +172,23 @@ io.on('connection', (socket) => {
     });
   });
 
+  // 处理游戏结束通知
+  socket.on('game-ended', () => {
+    gameState.gameEnded = true;
+    console.log('游戏已结束，等待所有玩家退出');
+  });
+
   // 处理游戏重置
   socket.on('reset-game', () => {
+    // 只有在所有玩家都退出后才能重置
+    if (gameState.players.length > 0) {
+      socket.emit('error', { message: '请等待所有玩家退出后才能重置游戏' });
+      return;
+    }
     gameState.players = [];
     gameState.currentTurn = 'red';
     gameState.board = null;
+    gameState.gameEnded = false; // 重置游戏结束状态
     io.emit('game-reset');
     console.log('游戏已重置');
   });
@@ -186,8 +207,14 @@ io.on('connection', (socket) => {
         io.to(remainingPlayer.id).emit('opponent-disconnected', {});
       });
       
-      // 如果两个玩家都断开，重置游戏状态
-      if (gameState.players.length === 0) {
+      // 如果游戏已结束且所有玩家都断开，重置游戏状态，允许新游戏开始
+      if (gameState.gameEnded && gameState.players.length === 0) {
+        gameState.currentTurn = 'red';
+        gameState.board = null;
+        gameState.gameEnded = false; // 重置游戏结束状态，允许新游戏开始
+        console.log('所有玩家已退出，游戏状态已重置，可以开始新游戏');
+      } else if (!gameState.gameEnded && gameState.players.length === 0) {
+        // 如果游戏未结束但所有玩家都断开，只重置基本状态
         gameState.currentTurn = 'red';
         gameState.board = null;
         console.log('所有玩家断开，重置游戏状态');

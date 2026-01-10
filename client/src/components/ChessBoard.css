@@ -241,7 +241,7 @@
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: #f0d9b5;
+  background: #f0d9b5 !important; /* 确保背景不透明 */
   border: 2px solid #8b4513;
   display: flex !important;
   justify-content: center;
@@ -267,6 +267,9 @@
   left: 0 !important;
   right: auto !important;
   bottom: auto !important;
+  /* 确保背景完全不透明，能遮挡下方的文字 */
+  background-color: #f0d9b5 !important;
+  background-image: none !important;
 }
 
 /* 选中棋子的四个角标记 - 使用绝对定位，完全脱离文档流，不影响flex布局 */
@@ -332,7 +335,7 @@
   position: absolute;
   font-weight: bold;
   color: #8b4513;
-  z-index: 5; /* 提高z-index，确保在棋盘线和单元格之上 */
+  z-index: 1; /* 降低z-index，确保在棋子之下 */
   pointer-events: none;
   font-family: 'KaiTi', '楷体', 'STKaiti', serif;
   white-space: nowrap;
