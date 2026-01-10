@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './ChessBoard.css';
 import { isValidMove, getPieceColor } from '../utils/chessRules';
 
@@ -23,10 +23,32 @@ const PIECE_NAMES = {
 
 function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCellClick, isInCheck, isInCheckState }) {
   const [hoveredCell, setHoveredCell] = useState(null);
+  const [boardSize, setBoardSize] = useState({ width: 540, height: 600 });
 
-  const cellSize = 60; // 每个交叉点之间的间距
-  const startX = 30; // 左边距
-  const startY = 30; // 上边距
+  // 响应式计算棋盘尺寸
+  useEffect(() => {
+    const updateSize = () => {
+      const container = document.querySelector('.chess-board-container');
+      if (container) {
+        const containerWidth = container.clientWidth - 20; // 减去 padding
+        const maxWidth = Math.min(540, containerWidth);
+        const maxHeight = (maxWidth / 9) * 10; // 保持 9:10 比例
+        setBoardSize({ width: maxWidth, height: maxHeight });
+      }
+    };
+
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+
+  // 根据实际棋盘尺寸计算 cellSize
+  // 使用固定的比例，但根据容器大小调整
+  const baseCellSize = 60;
+  const scale = boardSize.width / 540; // 相对于标准尺寸的缩放比例
+  const cellSize = baseCellSize * scale;
+  const startX = (boardSize.width - 8 * cellSize) / 2; // 居中
+  const startY = (boardSize.height - 9 * cellSize) / 2; // 居中
   const boardWidth = 8 * cellSize; // 9条竖线，8个间隔
   const boardHeight = 9 * cellSize; // 10条横线，9个间隔
   
@@ -136,7 +158,7 @@ function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCe
     <div className="chess-board-container">
       <div className="chess-board">
         {/* 绘制棋盘线 */}
-        <svg className="board-lines" viewBox={`0 0 ${boardWidth} ${boardHeight}`} preserveAspectRatio="none">
+        <svg className="board-lines" viewBox={`0 0 ${boardWidth} ${boardHeight}`} preserveAspectRatio="none" style={{ width: `${boardWidth}px`, height: `${boardHeight}px`, left: `${startX}px`, top: `${startY}px` }}>
           {/* 横线：10条 */}
           {Array.from({ length: 10 }, (_, i) => (
             <line
