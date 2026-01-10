@@ -24,9 +24,8 @@ const PIECE_NAMES = {
 function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCellClick, isInCheck, isInCheckState, lastMove }) {
   const [hoveredCell, setHoveredCell] = useState(null);
   const [boardSize, setBoardSize] = useState({ width: 540, height: 600 });
-  const [riverTextStyle, setRiverTextStyle] = useState({ left: {}, right: {} });
 
-  // 响应式计算棋盘尺寸和楚河汉界位置
+  // 响应式计算棋盘尺寸
   useEffect(() => {
     const updateSize = () => {
       const container = document.querySelector('.chess-board-container');
@@ -35,17 +34,6 @@ function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCe
         const maxWidth = Math.min(540, containerWidth);
         const maxHeight = (maxWidth / 9) * 10; // 保持 9:10 比例
         setBoardSize({ width: maxWidth, height: maxHeight });
-        
-        // 计算楚河汉界位置：应该在棋盘两侧，距离边缘约15%
-        const riverLeft = maxWidth * 0.15;
-        const riverRight = maxWidth * 0.15;
-        // 根据棋盘大小调整字体大小
-        const fontSize = Math.max(20, Math.min(42, maxWidth * 0.078));
-        
-        setRiverTextStyle({
-          left: { left: `${riverLeft}px`, fontSize: `${fontSize}px` },
-          right: { right: `${riverRight}px`, fontSize: `${fontSize}px` }
-        });
       }
     };
 
@@ -63,6 +51,25 @@ function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCe
   const startY = (boardSize.height - 9 * cellSize) / 2; // 居中
   const boardWidth = 8 * cellSize; // 9条竖线，8个间隔
   const boardHeight = 9 * cellSize; // 10条横线，9个间隔
+  
+  // 计算楚河汉界位置：基于实际棋盘绘制区域
+  // 河界在第4-5行之间，文字应该在棋盘两侧，距离棋盘绘制区域边缘一定距离
+  // 使用固定偏移量，但根据cellSize缩放
+  const riverTextOffset = Math.max(20, Math.min(60, cellSize * 0.6)); // 20-60px之间，或cellSize的60%
+  let riverLeftPos = startX + riverTextOffset;
+  let riverRightPos = startX + boardWidth - riverTextOffset;
+  
+  // 边界检查：确保文字不会超出棋盘范围
+  riverLeftPos = Math.max(10, Math.min(riverLeftPos, boardSize.width / 2 - 20));
+  riverRightPos = Math.max(boardSize.width / 2 + 20, Math.min(riverRightPos, boardSize.width - 10));
+  
+  // 根据棋盘大小调整字体大小
+  const fontSize = Math.max(20, Math.min(42, cellSize * 0.65));
+  
+  const riverTextStyle = {
+    left: { left: `${riverLeftPos}px`, fontSize: `${fontSize}px` },
+    right: { right: `${boardSize.width - riverRightPos}px`, fontSize: `${fontSize}px` }
+  };
   
   // 如果玩家选择黑色，需要将红黑棋子对调显示
   const isBlackPlayer = playerColor === 'black';
