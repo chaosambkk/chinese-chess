@@ -97,17 +97,11 @@ function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCe
         const isSelected = selectedDisplay && selectedDisplay.row === displayRow && selectedDisplay.col === displayCol;
         const isHovered = hoveredDisplay && hoveredDisplay.row === displayRow && hoveredDisplay.col === displayCol;
         
+        // 不再显示可移动路线提示
+        const isValidTarget = false;
+
         // 检查当前是否被将军
         const currentlyInCheck = isInCheckState && playerColor ? (isInCheckState[playerColor] || false) : false;
-        const isValidTarget = selectedCell && isValidMove(
-          board,
-          selectedCell.row,
-          selectedCell.col,
-          row,
-          col,
-          playerColor,
-          currentlyInCheck
-        ) && (selectedCell.row !== row || selectedCell.col !== col);
 
         // 检查是否是自己的将/帅且被将军
         const isKingInCheck = currentlyInCheck && piece && 
@@ -123,31 +117,66 @@ function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCe
         cells.push(
           <div
             key={`${displayRow}-${displayCol}`}
-            className={`cell ${pieceColor || ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isValidTarget ? 'valid-target' : ''} ${isKingInCheck ? 'in-check' : ''} ${isLastMoved ? 'last-moved' : ''}`}
-            style={{ left: `${left}px`, top: `${top}px` }}
+            className={`cell ${pieceColor || ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isKingInCheck ? 'in-check' : ''} ${isLastMoved ? 'last-moved' : ''}`}
+            style={{ 
+              left: `${left}px`, 
+              top: `${top}px`,
+              border: 'none',
+              outline: 'none',
+              boxShadow: 'none'
+            }}
             onClick={() => onCellClick(row, col)}
             onMouseEnter={() => setHoveredCell({ row, col })}
             onMouseLeave={() => setHoveredCell(null)}
           >
-            {(isSelected || isHovered) && (
-              <span className="selection-corners">
+            {piece && (
+              <span 
+                className={`piece ${pieceColor} ${isKingInCheck ? 'piece-in-check' : ''} ${(isSelected || isHovered) ? 'selected-piece' : ''}`} 
+                style={{
+                  transform: pieceColor === playerColor 
+                    ? 'translateY(2px)' // 自己的棋子：正向显示
+                    : 'translateY(2px) rotate(180deg)', // 对方的棋子：倒着显示（旋转180度）
+                  zIndex: 10000,
+                  position: 'relative',
+                  display: 'flex',
+                  opacity: 1,
+                  visibility: 'visible',
+                  pointerEvents: 'auto',
+                  // 确保棋子位置固定，不受角标记影响
+                  margin: 0,
+                  padding: 0,
+                  flexShrink: 0,
+                  flexGrow: 0,
+                  alignSelf: 'center'
+                }}
+              >
+                {PIECE_NAMES[piece]}
+              </span>
+            )}
+            {/* 角标记使用单独的绝对定位元素，完全不影响flex布局 */}
+            {(isSelected || isHovered) && piece && (
+              <>
+                <div className="piece-corner piece-corner-tl"></div>
+                <div className="piece-corner piece-corner-tr"></div>
+                <div className="piece-corner piece-corner-bl"></div>
+                <div className="piece-corner piece-corner-br"></div>
+              </>
+            )}
+            {(isSelected || isHovered) && !piece && (
+              <>
                 <span className="corner corner-tl"></span>
                 <span className="corner corner-tr"></span>
                 <span className="corner corner-bl"></span>
                 <span className="corner corner-br"></span>
-              </span>
+              </>
             )}
-            {piece && (
-              <span 
-                className={`piece ${pieceColor} ${isKingInCheck ? 'piece-in-check' : ''}`} 
-                style={
-                  pieceColor === playerColor 
-                    ? { transform: 'translateY(2px)' } // 自己的棋子：正向显示
-                    : { transform: 'translateY(2px) rotate(180deg)' } // 对方的棋子：倒着显示（旋转180度）
-                }
-              >
-                {PIECE_NAMES[piece]}
-              </span>
+            {isLastMoved && (
+              <>
+                <span className="last-move-corner last-move-corner-tl"></span>
+                <span className="last-move-corner last-move-corner-tr"></span>
+                <span className="last-move-corner last-move-corner-bl"></span>
+                <span className="last-move-corner last-move-corner-br"></span>
+              </>
             )}
           </div>
         );

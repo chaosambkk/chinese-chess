@@ -44,7 +44,7 @@ function App() {
     socketRef.current.on('connect', () => {
       console.log('已连接到服务器');
       setGameStatus('choosing-color');
-      setMessage('请选择你的颜色');
+      setMessage('');
       socketRef.current.emit('join-game');
     });
 
@@ -52,11 +52,7 @@ function App() {
       setGameStatus('choosing-color');
       setAvailableColors(avail);
       setTakenColors(taken);
-      if (taken.length > 0) {
-        setMessage(`请选择你的颜色（${taken.includes('red') ? '黑方' : '红方'}已被选择）`);
-      } else {
-        setMessage('请选择你的颜色');
-      }
+      setMessage('');
     });
 
     socketRef.current.on('colors-updated', ({ takenColors: taken, availableColors: avail }) => {
@@ -144,8 +140,32 @@ function App() {
           return newState;
         });
         
-        // 如果对手被将军，显示提示（优先显示）
-        if (isOpponentInCheck) {
+        // 优先检查是否将死
+        const isOpponentCheckmate = isCheckmate(newBoard, opponentColor);
+        const isMoverCheckmate = isCheckmate(newBoard, moveColor);
+        
+        if (isOpponentCheckmate) {
+          // 对手被将死，移动方获胜
+          setTimeout(() => {
+            setGameStatus('game-over');
+            setIsYourTurn(false); // 游戏结束，不能再下棋
+            const winnerColor = moveColor === 'red' ? '红方' : '黑方';
+            const loserColor = opponentColor === 'red' ? '红方' : '黑方';
+            setMessage(`🎉 游戏结束！${winnerColor}获胜！${loserColor}被将死！`);
+            playCheckSound(); // 播放"将军"语音
+          }, 200);
+        } else if (isMoverCheckmate) {
+          // 移动方被将死，对手获胜（这种情况理论上不应该发生，因为isValidMove会阻止）
+          setTimeout(() => {
+            setGameStatus('game-over');
+            setIsYourTurn(false);
+            const winnerColor = opponentColor === 'red' ? '红方' : '黑方';
+            const loserColor = moveColor === 'red' ? '红方' : '黑方';
+            setMessage(`🎉 游戏结束！${winnerColor}获胜！${loserColor}被将死！`);
+            playCheckSound();
+          }, 200);
+        } else if (isOpponentInCheck) {
+          // 对手被将军但未将死
           setTimeout(() => {
             setMessage(`⚠️ 将军！${opponentColor === 'red' ? '红方' : '黑方'}被将军！`);
             playCheckSound(); // 播放"将军"语音
@@ -160,14 +180,6 @@ function App() {
           }
         }
         
-        // 检查是否将死
-        if (isCheckmate(newBoard, opponentColor)) {
-          setTimeout(() => {
-            setGameStatus('game-over');
-            setMessage(`游戏结束！${moveColor === 'red' ? '红方' : '黑方'}获胜！`);
-          }, 100);
-        }
-        
         return newBoard;
       });
 
@@ -179,20 +191,45 @@ function App() {
           
           // 延迟更新消息，避免覆盖将军提示（延迟时间要长于将军提示的延迟）
           setTimeout(() => {
-            // 使用最新的 isInCheckState 来判断
-            setIsInCheckState(prev => {
-              const myCheckStatus = prev[currentColor];
-              // 如果被将军，显示将军提示；否则显示正常提示
-              if (myCheckStatus) {
-                setMessage(`⚠️ 你被将军了！请尽快应对！`);
-                playCheckSound(); // 播放"将军"语音
-              } else if (isMyTurn) {
-                setMessage(`轮到你下棋（${currentColor === 'red' ? '红方' : '黑方'}）`);
-                playNotificationSound(); // 播放提示音
-              } else {
-                setMessage(`等待对手下棋...`);
-              }
-              return prev; // 不修改状态，只是读取
+            // 使用最新的 board 和 isInCheckState 来判断
+            setBoard(currentBoard => {
+              setIsInCheckState(prev => {
+                const myCheckStatus = prev[currentColor];
+                const opponentColor = currentColor === 'red' ? 'black' : 'red';
+                
+                // 检查是否将死
+                const isMyCheckmate = isCheckmate(currentBoard, currentColor);
+                const isOpponentCheckmate = isCheckmate(currentBoard, opponentColor);
+                
+                if (isMyCheckmate) {
+                  // 自己被将死，对手获胜
+                  setGameStatus('game-over');
+                  setIsYourTurn(false);
+                  const winnerColor = opponentColor === 'red' ? '红方' : '黑方';
+                  const loserColor = currentColor === 'red' ? '红方' : '黑方';
+                  setMessage(`🎉 游戏结束！${winnerColor}获胜！${loserColor}被将死！`);
+                  playCheckSound();
+                } else if (isOpponentCheckmate) {
+                  // 对手被将死，自己获胜
+                  setGameStatus('game-over');
+                  setIsYourTurn(false);
+                  const winnerColor = currentColor === 'red' ? '红方' : '黑方';
+                  const loserColor = opponentColor === 'red' ? '红方' : '黑方';
+                  setMessage(`🎉 游戏结束！${winnerColor}获胜！${loserColor}被将死！`);
+                  playCheckSound();
+                } else if (myCheckStatus) {
+                  // 被将军但未将死
+                  setMessage(`⚠️ 你被将军了！请尽快应对！`);
+                  playCheckSound(); // 播放"将军"语音
+                } else if (isMyTurn) {
+                  setMessage(`轮到你下棋（${currentColor === 'red' ? '红方' : '黑方'}）`);
+                  playNotificationSound(); // 播放提示音
+                } else {
+                  setMessage(`等待对手下棋...`);
+                }
+                return prev; // 不修改状态，只是读取
+              });
+              return currentBoard; // 不修改棋盘，只是读取
             });
           }, 400);
         }
@@ -321,21 +358,12 @@ function App() {
       <div className="game-container">
         <div className="game-header">
           <h1>中国象棋</h1>
-          <div className="game-info">
-            <div className={`player-indicator ${playerColor}`}>
-              {playerColor === 'red' ? '红方' : playerColor === 'black' ? '黑方' : '等待中...'}
-            </div>
-            <div className="turn-indicator">
-              {isYourTurn ? '⚫ 轮到你' : '⚪ 等待对手'}
-            </div>
-          </div>
           <div className="status-message">{message}</div>
         </div>
 
         {/* 颜色选择界面 */}
         {gameStatus === 'choosing-color' && (
           <div className="color-selection">
-            <h2>选择你的颜色</h2>
             <div className="color-buttons">
               <button
                 className={`color-button red ${!availableColors.includes('red') ? 'disabled' : ''} ${takenColors.includes('red') ? 'taken' : ''}`}
@@ -373,11 +401,6 @@ function App() {
           />
         )}
 
-        <div className="game-controls">
-          <button onClick={handleReset} className="reset-button">
-            重新开始
-          </button>
-        </div>
       </div>
     </div>
   );

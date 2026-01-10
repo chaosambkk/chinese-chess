@@ -386,22 +386,35 @@ function canAttackKing(board, fromRow, fromCol, kingRow, kingCol, attackerColor)
   }
 }
 
-// 检查是否将死（将/帅被吃掉）
+// 检查是否将死（被将军且无法解除）
 export function isCheckmate(board, playerColor) {
-  // 如果找不到将/帅，说明被将死
-  const kingSymbol = playerColor === 'red' ? 'K' : 'k';
-  let kingRow = -1;
-
-  for (let row = 0; row < 10; row++) {
-    for (let col = 0; col < 9; col++) {
-      if (board[row][col] === kingSymbol) {
-        kingRow = row;
-        break;
-      }
-    }
-    if (kingRow !== -1) break;
+  // 首先检查是否被将军
+  if (!isInCheck(board, playerColor)) {
+    return false; // 未被将军，不是将死
   }
 
-  return kingRow === -1;
+  // 如果被将军，检查是否有任何合法走法可以解除将军
+  // 遍历所有己方棋子，看是否有任何合法移动
+  for (let fromRow = 0; fromRow < 10; fromRow++) {
+    for (let fromCol = 0; fromCol < 9; fromCol++) {
+      const piece = board[fromRow][fromCol];
+      if (!piece || !isOwnPiece(piece, playerColor)) {
+        continue; // 不是己方棋子，跳过
+      }
+
+      // 尝试所有可能的目标位置
+      for (let toRow = 0; toRow < 10; toRow++) {
+        for (let toCol = 0; toCol < 9; toCol++) {
+          // 检查这个移动是否合法（isValidMove 会检查是否解除将军）
+          if (isValidMove(board, fromRow, fromCol, toRow, toCol, playerColor, true)) {
+            return false; // 找到合法走法，不是将死
+          }
+        }
+      }
+    }
+  }
+
+  // 被将军且没有任何合法走法，是将死
+  return true;
 }
 
