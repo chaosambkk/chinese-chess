@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './ChessBoard.css';
-import { isValidMove, getPieceColor } from '../utils/chessRules';
+import { getPieceColor } from '../utils/chessRules';
 
 const PIECE_NAMES = {
   // 红方（大写）
@@ -97,9 +97,6 @@ function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCe
         const isSelected = selectedDisplay && selectedDisplay.row === displayRow && selectedDisplay.col === displayCol;
         const isHovered = hoveredDisplay && hoveredDisplay.row === displayRow && hoveredDisplay.col === displayCol;
         
-        // 不再显示可移动路线提示
-        const isValidTarget = false;
-
         // 检查当前是否被将军
         const currentlyInCheck = isInCheckState && playerColor ? (isInCheckState[playerColor] || false) : false;
 

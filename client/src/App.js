@@ -338,12 +338,6 @@ function App() {
     }
   };
 
-  const handleReset = () => {
-    setLastMove(null); // 重置最后移动位置
-    if (socketRef.current) {
-      socketRef.current.emit('reset-game');
-    }
-  };
 
   const handleChooseColor = (color) => {
     if (socketRef.current && availableColors.includes(color)) {
