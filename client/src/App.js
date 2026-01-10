@@ -327,10 +327,6 @@ function App() {
       // 检查当前是否被将军
       const currentlyInCheck = isInCheckState[playerColor] || false;
       
-      // 检查是否是吃子（目标位置有对方棋子）
-      const targetPiece = board[row][col];
-      const isCapture = targetPiece !== null && targetPiece !== undefined;
-      
       if (isValidMove(board, selectedCell.row, selectedCell.col, row, col, playerColor, currentlyInCheck)) {
         // 发送移动
         socketRef.current.emit('make-move', {
