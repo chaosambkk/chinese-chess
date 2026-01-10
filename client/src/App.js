@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import ChessBoard from './components/ChessBoard';
 import { INITIAL_BOARD, isValidMove, makeMove, isCheckmate, isInCheck } from './utils/chessRules';
-import { playCheckSound, playNotificationSound, playMoveSound, initSpeechSynthesis } from './utils/sound';
+import { playCheckSound, playNotificationSound, playMoveSound, playCaptureSound, initSpeechSynthesis } from './utils/sound';
 import './App.css';
 
 // 自动检测服务器地址：生产环境使用当前域名，开发环境使用 localhost
@@ -101,8 +101,24 @@ function App() {
       
       setBoard(prevBoard => {
         console.log('更新棋盘前:', prevBoard[fromRow][fromCol], '->', prevBoard[toRow][toCol]);
+        
+        // 检查是否是吃子（目标位置有对方棋子）
+        const capturedPiece = prevBoard[toRow][toCol];
+        const isCapture = capturedPiece !== null && capturedPiece !== undefined;
+        
         const newBoard = makeMove(prevBoard, fromRow, fromCol, toRow, toCol);
         console.log('更新棋盘后:', newBoard[fromRow][fromCol], '->', newBoard[toRow][toCol]);
+        
+        // 如果是吃子，播放"吃"的提示音；否则播放移动音
+        if (isCapture) {
+          setTimeout(() => {
+            playCaptureSound();
+          }, 50);
+        } else {
+          setTimeout(() => {
+            playMoveSound();
+          }, 50);
+        }
         
         // 检查双方的将军状态
         const opponentColor = moveColor === 'red' ? 'black' : 'red';
@@ -234,6 +250,10 @@ function App() {
       // 检查当前是否被将军
       const currentlyInCheck = isInCheckState[playerColor] || false;
       
+      // 检查是否是吃子（目标位置有对方棋子）
+      const targetPiece = board[row][col];
+      const isCapture = targetPiece !== null && targetPiece !== undefined;
+      
       if (isValidMove(board, selectedCell.row, selectedCell.col, row, col, playerColor, currentlyInCheck)) {
         // 发送移动
         socketRef.current.emit('make-move', {
@@ -242,7 +262,18 @@ function App() {
           toRow: row,
           toCol: col,
         });
-        playMoveSound(); // 播放移动提示音
+        
+        // 根据是否是吃子播放不同的音效
+        if (isCapture) {
+          setTimeout(() => {
+            playCaptureSound();
+          }, 50);
+        } else {
+          setTimeout(() => {
+            playMoveSound();
+          }, 50);
+        }
+        
         setSelectedCell(null);
       } else {
         // 如果移动不合法，显示错误提示
