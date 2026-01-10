@@ -21,7 +21,7 @@ const PIECE_NAMES = {
   'p': '卒',  // 黑方卒
 };
 
-function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCellClick, isInCheck, isInCheckState }) {
+function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCellClick, isInCheck, isInCheckState, lastMove }) {
   const [hoveredCell, setHoveredCell] = useState(null);
   const [boardSize, setBoardSize] = useState({ width: 540, height: 600 });
 
@@ -113,6 +113,9 @@ function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCe
         const isKingInCheck = currentlyInCheck && piece && 
           ((playerColor === 'red' && piece === 'K') || (playerColor === 'black' && piece === 'k'));
 
+        // 检查是否是最后移动的棋子（目标位置）
+        const isLastMoved = lastMove && lastMove.toRow === row && lastMove.toCol === col;
+
         // 计算显示位置（始终使用显示坐标）
         const left = startX + displayCol * cellSize;
         const top = startY + displayRow * cellSize;
@@ -120,7 +123,7 @@ function ChessBoard({ board, playerColor, onMove, isYourTurn, selectedCell, onCe
         cells.push(
           <div
             key={`${displayRow}-${displayCol}`}
-            className={`cell ${pieceColor || ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isValidTarget ? 'valid-target' : ''} ${isKingInCheck ? 'in-check' : ''}`}
+            className={`cell ${pieceColor || ''} ${isSelected ? 'selected' : ''} ${isHovered ? 'hovered' : ''} ${isValidTarget ? 'valid-target' : ''} ${isKingInCheck ? 'in-check' : ''} ${isLastMoved ? 'last-moved' : ''}`}
             style={{ left: `${left}px`, top: `${top}px` }}
             onClick={() => onCellClick(row, col)}
             onMouseEnter={() => setHoveredCell({ row, col })}

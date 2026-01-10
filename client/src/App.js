@@ -30,6 +30,7 @@ function App() {
   const [availableColors, setAvailableColors] = useState(['red', 'black']);
   const [takenColors, setTakenColors] = useState([]);
   const [isInCheckState, setIsInCheckState] = useState({ red: false, black: false });
+  const [lastMove, setLastMove] = useState(null); // 记录最后移动的棋子位置 { fromRow, fromCol, toRow, toCol }
   const socketRef = useRef(null);
   const playerColorRef = useRef(null);
 
@@ -98,6 +99,9 @@ function App() {
     socketRef.current.on('move-made', ({ move, playerColor: moveColor, nextTurn }) => {
       const { fromRow, fromCol, toRow, toCol } = move;
       console.log('收到移动:', move, '移动玩家:', moveColor, '下一回合:', nextTurn, '我的颜色:', playerColorRef.current);
+      
+      // 更新最后移动的位置（目标位置，即棋子现在的位置）
+      setLastMove({ fromRow, fromCol, toRow, toCol });
       
       setBoard(prevBoard => {
         console.log('更新棋盘前:', prevBoard[fromRow][fromCol], '->', prevBoard[toRow][toCol]);
@@ -200,6 +204,7 @@ function App() {
     socketRef.current.on('game-reset', () => {
       setBoard(INITIAL_BOARD);
       setSelectedCell(null);
+      setLastMove(null); // 重置最后移动位置
       setIsYourTurn(playerColorRef.current === 'red');
       setGameStatus('playing');
       setMessage('游戏已重置');
@@ -297,6 +302,7 @@ function App() {
   };
 
   const handleReset = () => {
+    setLastMove(null); // 重置最后移动位置
     if (socketRef.current) {
       socketRef.current.emit('reset-game');
     }
@@ -363,6 +369,7 @@ function App() {
             onCellClick={handleCellClick}
             isInCheck={isInCheckState[playerColor] || false}
             isInCheckState={isInCheckState}
+            lastMove={lastMove}
           />
         )}
 
