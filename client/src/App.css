@@ -212,6 +212,132 @@
   border: 1px solid #ff9800;
 }
 
+.game-selection {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  padding: 40px 20px;
+  flex-wrap: wrap;
+}
+
+.game-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding: 40px 50px;
+  border: 3px solid #ddd;
+  border-radius: 20px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 200px;
+  text-align: center;
+}
+
+.game-option:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  border-color: #667eea;
+}
+
+.game-icon {
+  font-size: 64px;
+  margin-bottom: 10px;
+}
+
+.chess-icon {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.chess-icon .chess-piece {
+  font-size: 48px;
+  font-weight: bold;
+  font-family: 'KaiTi', '楷体', 'STKaiti', 'SimKai', serif;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #f0d9b5;
+  border: 3px solid #8b4513;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.chess-icon .chess-piece.red {
+  color: #d32f2f;
+}
+
+.chess-icon .chess-piece.black {
+  color: #212121;
+}
+
+.game-option h2 {
+  color: #333;
+  font-size: 24px;
+  margin: 0;
+}
+
+.game-option p {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+}
+
+.back-button {
+  padding: 12px 24px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-right: 10px;
+}
+
+.back-button:hover {
+  background-color: #5a6268;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.back-button:active {
+  transform: translateY(0);
+}
+
+.color-button.white:not(.disabled):hover {
+  border-color: #999;
+  background-color: #f5f5f5;
+}
+
+.color-preview.white {
+  background: radial-gradient(circle at 30% 30%, #fff, #ddd);
+  border: 2px solid #999;
+}
+
+.gomoku-preview-black {
+  background: radial-gradient(circle at 30% 30%, #555, #000) !important;
+  border: 2px solid #000 !important;
+}
+
+.gomoku-preview-white {
+  background: radial-gradient(circle at 30% 30%, #fff, #ddd) !important;
+  border: 2px solid #999 !important;
+}
+
+.player-indicator.white {
+  background-color: #f5f5f5;
+  color: #666;
+  border: 2px solid #999;
+}
+
 @media (max-width: 600px) {
   .game-container {
     padding: 15px;
@@ -234,6 +360,18 @@
   .color-button {
     min-width: auto;
     width: 100%;
+  }
+
+  .game-selection {
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px 10px;
+  }
+
+  .game-option {
+    min-width: auto;
+    width: 100%;
+    padding: 30px 20px;
   }
 }
 

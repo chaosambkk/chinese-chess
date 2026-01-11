@@ -25,6 +25,52 @@ let gameState = {
   gameEnded: false // 游戏是否已结束
 };
 
+// 五子棋游戏状态
+let gomokuGameState = {
+  players: [],
+  board: Array(15).fill(null).map(() => Array(15).fill(null)),
+  turn: 0, // 0 = 黑方，1 = 白方
+  gameEnded: false
+};
+
+// 五子棋：检查是否获胜
+function checkGomokuWin(board, row, col, playerColor) {
+  const directions = [
+    [[0, 1], [0, -1]],   // 水平
+    [[1, 0], [-1, 0]],   // 垂直
+    [[1, 1], [-1, -1]],  // 主对角线
+    [[1, -1], [-1, 1]]   // 副对角线
+  ];
+
+  for (const [forward, backward] of directions) {
+    let count = 1;
+    
+    // 向前检查
+    let r = row + forward[0];
+    let c = col + forward[1];
+    while (r >= 0 && r < 15 && c >= 0 && c < 15 && board[r][c] === playerColor) {
+      count++;
+      r += forward[0];
+      c += forward[1];
+    }
+    
+    // 向后检查
+    r = row + backward[0];
+    c = col + backward[1];
+    while (r >= 0 && r < 15 && c >= 0 && c < 15 && board[r][c] === playerColor) {
+      count++;
+      r += backward[0];
+      c += backward[1];
+    }
+    
+    if (count >= 5) {
+      return true;
+    }
+  }
+  
+  return false;
+}
+
 // 允许玩家选择颜色
 io.on('connection', (socket) => {
   console.log('用户连接:', socket.id);
@@ -193,31 +239,207 @@ io.on('connection', (socket) => {
     console.log('游戏已重置');
   });
 
+  // ========== 五子棋相关事件 ==========
+  
+  // 五子棋：加入游戏
+  socket.on('join-gomoku-game', () => {
+    if (gomokuGameState.gameEnded && gomokuGameState.players.length > 0) {
+      socket.emit('game-ended-waiting', { 
+        message: '游戏已结束，请等待所有玩家退出后才能开始新游戏' 
+      });
+      return;
+    }
+    
+    if (gomokuGameState.players.length >= 2) {
+      socket.emit('gomoku-game-full');
+      return;
+    }
+    
+    const existingPlayer = gomokuGameState.players.find(p => p.id === socket.id);
+    if (existingPlayer) {
+      socket.emit('already-joined-gomoku', { color: existingPlayer.color });
+      return;
+    }
+
+    const takenColors = gomokuGameState.players.map(p => p.color);
+    const availableColors = ['black', 'white'].filter(c => !takenColors.includes(c));
+    
+    socket.emit('choose-gomoku-color', { 
+      availableColors,
+      takenColors
+    });
+    console.log('等待玩家选择五子棋颜色:', socket.id);
+  });
+
+  // 五子棋：选择颜色
+  socket.on('choose-gomoku-color', ({ color, timestamp }) => {
+    if (!['black', 'white'].includes(color)) {
+      socket.emit('error', { message: '无效的颜色选择' });
+      return;
+    }
+
+    const existingPlayer = gomokuGameState.players.find(p => p.id === socket.id);
+    if (existingPlayer) {
+      socket.emit('error', { message: '你已经选择了颜色' });
+      return;
+    }
+
+    const colorTakenPlayer = gomokuGameState.players.find(p => p.color === color);
+    if (colorTakenPlayer) {
+      const requestTime = timestamp || Date.now();
+      const takenTime = colorTakenPlayer.timestamp || Date.now();
+      
+      if (requestTime < takenTime) {
+        gomokuGameState.players = gomokuGameState.players.filter(p => p.id !== colorTakenPlayer.id);
+        io.to(colorTakenPlayer.id).emit('color-taken-gomoku', { 
+          message: '该颜色已被其他玩家选择',
+          availableColors: ['black', 'white'].filter(c => c !== color)
+        });
+        gomokuGameState.players.push({ id: socket.id, color, timestamp: requestTime });
+        socket.emit('color-chosen-gomoku', { color });
+        console.log(`${color === 'black' ? '黑方' : '白方'}选择颜色（替换）:`, socket.id);
+      } else {
+        socket.emit('error', { message: '该颜色已被选择' });
+        return;
+      }
+    } else {
+      const requestTime = timestamp || Date.now();
+      gomokuGameState.players.push({ id: socket.id, color, timestamp: requestTime });
+      socket.emit('color-chosen-gomoku', { color });
+      console.log(`${color === 'black' ? '黑方' : '白方'}选择颜色:`, socket.id);
+    }
+    
+    const takenColors = gomokuGameState.players.map(p => p.color);
+    const availableColors = ['black', 'white'].filter(c => !takenColors.includes(c));
+    io.emit('colors-updated-gomoku', { takenColors, availableColors });
+
+    if (gomokuGameState.players.length === 2) {
+      const blackPlayer = gomokuGameState.players.find(p => p.color === 'black');
+      const whitePlayer = gomokuGameState.players.find(p => p.color === 'white');
+      
+      if (blackPlayer && whitePlayer) {
+        gomokuGameState.turn = 0;
+        gomokuGameState.board = Array(15).fill(null).map(() => Array(15).fill(null));
+        
+        io.to(blackPlayer.id).emit('gomoku-game-started', { 
+          color: 'black', 
+          isYourTurn: true 
+        });
+        io.to(whitePlayer.id).emit('gomoku-game-started', { 
+          color: 'white', 
+          isYourTurn: false 
+        });
+        console.log('五子棋游戏开始！黑方:', blackPlayer.id, '白方:', whitePlayer.id);
+      }
+    } else {
+      gomokuGameState.players.forEach(player => {
+        if (player.id !== socket.id) {
+          io.to(player.id).emit('opponent-choosing-gomoku', {});
+        }
+      });
+    }
+  });
+
+  // 五子棋：落子
+  socket.on('gomoku-make-move', ({ row, col }) => {
+    const player = gomokuGameState.players.find(p => p.id === socket.id);
+    if (!player) {
+      socket.emit('error', { message: '你还没有加入游戏' });
+      return;
+    }
+
+    const currentPlayer = gomokuGameState.turn % 2 === 0 ? 'black' : 'white';
+    if (player.color !== currentPlayer) {
+      socket.emit('error', { message: '不是你的回合' });
+      return;
+    }
+
+    if (gomokuGameState.board[row][col] !== null) {
+      socket.emit('error', { message: '该位置已有棋子' });
+      return;
+    }
+
+    gomokuGameState.board[row][col] = player.color;
+    const nextTurn = gomokuGameState.turn + 1;
+    gomokuGameState.turn = nextTurn;
+
+    const winner = checkGomokuWin(gomokuGameState.board, row, col, player.color);
+    if (winner) {
+      gomokuGameState.gameEnded = true;
+    }
+
+    io.emit('gomoku-move-made', {
+      row,
+      col,
+      playerColor: player.color,
+      nextTurn,
+      winner: winner ? player.color : null
+    });
+
+    console.log(`五子棋落子: ${player.color} 在 (${row},${col}), 下一回合: ${nextTurn % 2 === 0 ? 'black' : 'white'}`);
+  });
+
+  // 五子棋：重置游戏
+  socket.on('gomoku-reset-game', () => {
+    if (gomokuGameState.players.length > 0) {
+      socket.emit('error', { message: '请等待所有玩家退出后才能重置游戏' });
+      return;
+    }
+    gomokuGameState.players = [];
+    gomokuGameState.board = Array(15).fill(null).map(() => Array(15).fill(null));
+    gomokuGameState.turn = 0;
+    gomokuGameState.gameEnded = false;
+    io.emit('gomoku-game-reset');
+    console.log('五子棋游戏已重置');
+  });
+
   // 处理断开连接
   socket.on('disconnect', () => {
     console.log('用户断开连接:', socket.id);
+    
+    // 处理象棋断开
     const playerIndex = gameState.players.findIndex(p => p.id === socket.id);
     if (playerIndex !== -1) {
       const player = gameState.players[playerIndex];
       gameState.players.splice(playerIndex, 1);
       console.log(`${player.color === 'red' ? '红方' : '黑方'}断开连接`);
       
-      // 通知另一个玩家
       gameState.players.forEach(remainingPlayer => {
         io.to(remainingPlayer.id).emit('opponent-disconnected', {});
       });
       
-      // 如果游戏已结束且所有玩家都断开，重置游戏状态，允许新游戏开始
       if (gameState.gameEnded && gameState.players.length === 0) {
         gameState.currentTurn = 'red';
         gameState.board = null;
-        gameState.gameEnded = false; // 重置游戏结束状态，允许新游戏开始
+        gameState.gameEnded = false;
         console.log('所有玩家已退出，游戏状态已重置，可以开始新游戏');
       } else if (!gameState.gameEnded && gameState.players.length === 0) {
-        // 如果游戏未结束但所有玩家都断开，只重置基本状态
         gameState.currentTurn = 'red';
         gameState.board = null;
         console.log('所有玩家断开，重置游戏状态');
+      }
+    }
+    
+    // 处理五子棋断开
+    const gomokuPlayerIndex = gomokuGameState.players.findIndex(p => p.id === socket.id);
+    if (gomokuPlayerIndex !== -1) {
+      const player = gomokuGameState.players[gomokuPlayerIndex];
+      gomokuGameState.players.splice(gomokuPlayerIndex, 1);
+      console.log(`五子棋${player.color === 'black' ? '黑方' : '白方'}断开连接`);
+      
+      gomokuGameState.players.forEach(remainingPlayer => {
+        io.to(remainingPlayer.id).emit('gomoku-opponent-disconnected', {});
+      });
+      
+      if (gomokuGameState.gameEnded && gomokuGameState.players.length === 0) {
+        gomokuGameState.board = Array(15).fill(null).map(() => Array(15).fill(null));
+        gomokuGameState.turn = 0;
+        gomokuGameState.gameEnded = false;
+        console.log('所有五子棋玩家已退出，游戏状态已重置');
+      } else if (!gomokuGameState.gameEnded && gomokuGameState.players.length === 0) {
+        gomokuGameState.board = Array(15).fill(null).map(() => Array(15).fill(null));
+        gomokuGameState.turn = 0;
+        console.log('所有五子棋玩家断开，重置游戏状态');
       }
     }
   });
