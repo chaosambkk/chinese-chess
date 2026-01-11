@@ -1,0 +1,148 @@
+.gomoku-board-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.gomoku-board {
+  position: relative;
+  width: 600px;
+  height: 600px;
+  max-width: 100%;
+  background: #deb887;
+  border: 4px solid #8b4513;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.gomoku-cell {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.gomoku-cell:hover {
+  background-color: transparent;
+}
+
+.gomoku-cell.hovered {
+  background-color: transparent;
+}
+
+.gomoku-cell.last-move {
+  position: relative;
+}
+
+.gomoku-cell.last-move::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #ff6b00;
+  border: 2px solid #ff6b00;
+  z-index: 10;
+  animation: lastMovePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes lastMovePulse {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.gomoku-piece {
+  width: 85%;
+  height: 85%;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 3;
+  transition: all 0.2s;
+}
+
+.gomoku-piece.black {
+  background: radial-gradient(circle at 30% 30%, #555, #000);
+  border: 2px solid #000;
+}
+
+.gomoku-piece.white {
+  background: radial-gradient(circle at 30% 30%, #fff, #ddd);
+  border: 2px solid #999;
+}
+
+.gomoku-preview {
+  width: 60%;
+  height: 60%;
+  border-radius: 50%;
+  opacity: 0.5;
+  position: relative;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.gomoku-preview.black {
+  background: radial-gradient(circle at 30% 30%, #555, #000);
+  border: 2px solid #000;
+}
+
+.gomoku-preview.white {
+  background: radial-gradient(circle at 30% 30%, #fff, #ddd);
+  border: 2px solid #999;
+}
+
+.board-lines {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 移动端响应式设计 */
+@media (max-width: 768px) {
+  .gomoku-board-container {
+    padding: 5px;
+  }
+  
+  .gomoku-board {
+    width: calc(100vw - 20px);
+    max-width: 600px;
+    height: calc(100vw - 20px);
+    max-height: calc(100vh - 250px);
+    min-width: 320px;
+    min-height: 320px;
+  }
+  
+  .gomoku-piece {
+    width: 80%;
+    height: 80%;
+  }
+}
+
+@media (max-width: 600px) {
+  .gomoku-board {
+    width: calc(100vw - 10px);
+    height: calc(100vw - 10px);
+  }
+  
+  .gomoku-piece {
+    width: 75%;
+    height: 75%;
+  }
+}
+
