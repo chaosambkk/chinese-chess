@@ -1,0 +1,12 @@
+# Render Blueprint：在 Dashboard 用此仓库创建/更新 Web Service 时会使用这些命令。
+# 若服务已存在，请在 Settings → Build & Deploy 中把 Build Command 设为下方 buildCommand 的内容。
+services:
+  - type: web
+    name: chinese-chess
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production

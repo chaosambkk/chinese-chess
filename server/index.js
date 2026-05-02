@@ -3,6 +3,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -445,20 +446,32 @@ io.on('connection', (socket) => {
   });
 });
 
-// 在生产环境中提供静态文件
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/build')));
-  
+// 提供前端静态文件：存在 client/build 时即挂载（Railway / Render 均需先在 CI 里执行 npm run build）
+const clientBuildPath = path.join(__dirname, '../client/build');
+const clientIndexHtml = path.join(clientBuildPath, 'index.html');
+if (fs.existsSync(clientIndexHtml)) {
+  app.use(express.static(clientBuildPath));
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+    res.sendFile(clientIndexHtml);
+  });
+  console.log('已挂载静态资源:', clientBuildPath);
+} else {
+  console.error(
+    '未找到 client/build/index.html。云端需在 Build 阶段执行: npm install && npm run build（根目录）。'
+  );
+  app.get('/', (req, res) => {
+    res.status(503).type('html').send(`<!DOCTYPE html><html><head><meta charset="utf-8"/><title>前端未构建</title></head><body style="font-family:sans-serif;padding:1.5rem;max-width:40rem">
+<h1>前端未构建</h1>
+<p>服务端已启动，但未找到 <code>client/build</code>。在 Render：打开服务 → <strong>Settings</strong> → <strong>Build &amp; Deploy</strong>，将 <strong>Build Command</strong> 设为：</p>
+<pre style="background:#f4f4f4;padding:0.75rem;overflow:auto">npm install &amp;&amp; npm run build</pre>
+<p>保存后重新部署。仓库根目录已包含 <code>render.yaml</code> 可供 Blueprint 使用。</p>
+</body></html>`);
   });
 }
 
-// 启动服务器
+// 启动服务器（0.0.0.0 便于 Render 等云平台从外部访问）
 const PORT = process.env.PORT || 3001;
-server.listen(PORT, () => {
-  console.log(`服务器运行在端口 ${PORT}`);
-  if (process.env.NODE_ENV === 'production') {
-    console.log('生产模式：提供静态文件服务');
-  }
+const HOST = process.env.HOST || '0.0.0.0';
+server.listen(PORT, HOST, () => {
+  console.log(`服务器运行在 http://${HOST}:${PORT}`);
 });
